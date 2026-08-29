@@ -1,16 +1,19 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../state/daftar_catatan_notifier.dart';
 
-class KolomPencarian extends StatefulWidget {
-  const KolomPencarian({super.key, required this.onBerubah});
-
-  final ValueChanged<String> onBerubah;
+class KolomPencarian extends ConsumerStatefulWidget implements PreferredSizeWidget {
+  const KolomPencarian({super.key});
 
   @override
-  State<KolomPencarian> createState() => _KolomPencarianState();
+  Size get preferredSize => const Size.fromHeight(60);
+
+  @override
+  ConsumerState<KolomPencarian> createState() => _KolomPencarianState();
 }
 
-class _KolomPencarianState extends State<KolomPencarian> {
+class _KolomPencarianState extends ConsumerState<KolomPencarian> {
   late final TextEditingController _kontroler;
   Timer? _debounce;
 
@@ -24,7 +27,8 @@ class _KolomPencarianState extends State<KolomPencarian> {
   void _tunda() {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 350), () {
-      widget.onBerubah(_kontroler.text);
+      // Memperbarui state kata kunci di Riverpod secara otomatis
+      ref.read(kataKunciPencarianProvider.notifier).state = _kontroler.text;
     });
   }
 
@@ -38,12 +42,18 @@ class _KolomPencarianState extends State<KolomPencarian> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: _kontroler,
-      decoration: const InputDecoration(
-        hintText: 'Cari catatan...',
-        prefixIcon: Icon(Icons.search),
-        border: OutlineInputBorder(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: TextField(
+        controller: _kontroler,
+        decoration: InputDecoration(
+          hintText: 'Cari catatan...',
+          prefixIcon: const Icon(Icons.search),
+          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+        ),
       ),
     );
   }
