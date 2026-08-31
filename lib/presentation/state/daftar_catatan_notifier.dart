@@ -28,6 +28,23 @@ class DaftarCatatanNotifier extends AsyncNotifier<List<Catatan>> {
     state = AsyncData([...state.value ?? [], catatan]);
   }
 
+  // 📍 METODE UNTUK MEMPERBARUI CATATAN
+  Future<void> perbarui(String id, String judulBaru, String isiBaru) async {
+    final daftarSaatIni = state.value ?? [];
+
+    final daftarDiperbarui = daftarSaatIni.map((c) {
+      if (c.id == id) {
+        return Catatan.baru(
+          judul: judulBaru,
+          isi: isiBaru,
+        );
+      }
+      return c;
+    }).toList();
+
+    state = AsyncData(daftarDiperbarui);
+  }
+
   Future<void> hapus(String id) async {
     ref.read(catatanRepositoryProvider).hapus(id);
     state = AsyncData(
