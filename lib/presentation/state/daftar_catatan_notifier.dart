@@ -41,12 +41,11 @@ AsyncNotifierProvider<DaftarCatatanNotifier, List<Catatan>>(
   DaftarCatatanNotifier.new,
 );
 
-// 📍 NOTIFIER KATA KUNCI PENCARIAN (Dengan metode ubah)
+// 📍 NOTIFIER KATA KUNCI PENCARIAN
 class KataKunciPencarianNotifier extends Notifier<String> {
   @override
   String build() => '';
 
-  // 📍 Metode ini yang dipanggil oleh KolomPencarian
   void ubah(String baru) {
     state = baru;
   }
@@ -58,7 +57,8 @@ NotifierProvider<KataKunciPencarianNotifier, String>(
 );
 
 // Provider turunan untuk menyaring daftar catatan
-final daftarCatatanTersaringProvider = Provider<AsyncValue<List<Catatan>>>((ref) {
+final daftarCatatanTersaringProvider =
+Provider<AsyncValue<List<Catatan>>>((ref) {
   final asyncCatatan = ref.watch(daftarCatatanNotifierProvider);
   final kataKunci = ref.watch(kataKunciPencarianProvider);
 
@@ -74,3 +74,20 @@ final daftarCatatanTersaringProvider = Provider<AsyncValue<List<Catatan>>>((ref)
     }).toList();
   });
 });
+
+// -----------------------------------------------------------------------------
+// 📍 LATIHAN 3.4 (BAGIAN 1): Notifier ID Catatan Terpilih (Pengganti StateProvider)
+// -----------------------------------------------------------------------------
+class CatatanTerpilihIdNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void pilih(String? id) {
+    state = id;
+  }
+}
+
+final catatanTerpilihIdProvider =
+NotifierProvider<CatatanTerpilihIdNotifier, String?>(
+  CatatanTerpilihIdNotifier.new,
+);

@@ -7,6 +7,8 @@ import '../widget/kartu_catatan.dart';
 import '../widget/keadaan_kosong.dart';
 import '../widget/kolom_pencarian.dart';
 import '../widget/skeleton_daftar.dart';
+import 'beranda_responsif.dart';
+import 'layar_detail.dart';
 import 'layar_formulir.dart';
 
 class LayarBeranda extends ConsumerWidget {
@@ -14,10 +16,13 @@ class LayarBeranda extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 📍 Menambahkan const pada Scaffold (Line 17)
     return const Scaffold(
       appBar: _AppBarBeranda(),
-      body: KontenDaftarCatatan(),
+      // 📍 Menambahkan const pada BerandaResponsif (Baris 19)
+      body: BerandaResponsif(
+        daftar: KontenDaftarCatatan(),
+        detail: _PanelDetailCatatan(),
+      ),
       floatingActionButton: _TombolTambahCatatan(),
     );
   }
@@ -39,7 +44,7 @@ class _AppBarBeranda extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-// --- EXTRACT WIDGET 2: Konten Daftar Catatan ---
+// --- EXTRACT WIDGET 2: Konten Daftar Catatan (Panel Kiri) ---
 class KontenDaftarCatatan extends ConsumerWidget {
   const KontenDaftarCatatan({super.key});
 
@@ -68,8 +73,19 @@ class KontenDaftarCatatan extends ConsumerWidget {
             return KartuCatatan(
               key: ValueKey(catatan.id),
               catatan: catatan,
-              onKetuk: () {},
-              // 📍 Menggunakan async/await agar tidak unawaited
+              onKetuk: () {
+                ref.read(catatanTerpilihIdProvider.notifier).pilih(catatan.id);
+
+                final lebarLayar = MediaQuery.of(context).size.width;
+                if (lebarLayar < AppBreakpoint.medium) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LayarDetail(id: catatan.id),
+                    ),
+                  );
+                }
+              },
               onHapus: () async => await _prosesHapus(context, ref, catatan),
             );
           },
@@ -80,7 +96,10 @@ class KontenDaftarCatatan extends ConsumerWidget {
 
   Future<void> _prosesHapus(
       BuildContext context, WidgetRef ref, Catatan catatan) async {
-    // 📍 Menambahkan await di sini (Line 118)
+    if (ref.read(catatanTerpilihIdProvider) == catatan.id) {
+      ref.read(catatanTerpilihIdProvider.notifier).pilih(null);
+    }
+
     await ref.read(daftarCatatanNotifierProvider.notifier).hapus(catatan.id);
 
     if (!context.mounted) return;
@@ -103,7 +122,28 @@ class KontenDaftarCatatan extends ConsumerWidget {
   }
 }
 
-// --- EXTRACT WIDGET 3: Tombol Tambah Catatan ---
+// --- EXTRACT WIDGET 3: Panel Detail Catatan (Panel Kanan) ---
+class _PanelDetailCatatan extends ConsumerWidget {
+  const _PanelDetailCatatan();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final idTerpilih = ref.watch(catatanTerpilihIdProvider);
+
+    if (idTerpilih == null) {
+      return const KeadaanKosong(
+        ikon: Icons.touch_app_outlined,
+        judul: 'Pilih Catatan',
+        penjelasan:
+        'Ketuk salah satu catatan di sebelah kiri untuk melihat detailnya.',
+      );
+    }
+
+    return LayarDetail(id: idTerpilih);
+  }
+}
+
+// --- EXTRACT WIDGET 4: Tombol Tambah Catatan ---
 class _TombolTambahCatatan extends ConsumerWidget {
   const _TombolTambahCatatan();
 
