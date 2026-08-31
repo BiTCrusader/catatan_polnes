@@ -4,16 +4,13 @@ import '../../data/repository/catatan_repository_memori.dart';
 import '../../domain/entity/catatan.dart';
 import '../../domain/repository/catatan_repository.dart';
 
-// Provider untuk akses repositori
 final catatanRepositoryProvider = Provider<CatatanRepository>((ref) {
   return CatatanRepositoryMemori();
 });
 
-// AsyncNotifier untuk mengelola state daftar catatan
 class DaftarCatatanNotifier extends AsyncNotifier<List<Catatan>> {
   @override
   FutureOr<List<Catatan>> build() async {
-    // Simulasikan penundaan 1 detik saat memuat data
     await Future.delayed(const Duration(seconds: 1));
     return ref.watch(catatanRepositoryProvider).ambilSemua();
   }
@@ -39,22 +36,20 @@ class DaftarCatatanNotifier extends AsyncNotifier<List<Catatan>> {
   }
 }
 
-// Provider utama untuk Notifier
 final daftarCatatanNotifierProvider =
 AsyncNotifierProvider<DaftarCatatanNotifier, List<Catatan>>(
   DaftarCatatanNotifier.new,
 );
 
-// -----------------------------------------------------------------------------
-// LANGKAH 2: Provider Tambahan untuk Pencarian & Penyaringan
-// -----------------------------------------------------------------------------
-
-// Notifier untuk mengelola kata kunci pencarian (Pengganti StateProvider)
+// 📍 NOTIFIER KATA KUNCI PENCARIAN (Dengan metode ubah)
 class KataKunciPencarianNotifier extends Notifier<String> {
   @override
   String build() => '';
 
-  void ubah(String baru) => state = baru;
+  // 📍 Metode ini yang dipanggil oleh KolomPencarian
+  void ubah(String baru) {
+    state = baru;
+  }
 }
 
 final kataKunciPencarianProvider =
@@ -62,7 +57,7 @@ NotifierProvider<KataKunciPencarianNotifier, String>(
   KataKunciPencarianNotifier.new,
 );
 
-// Provider turunan untuk menyaring daftar catatan berdasarkan kata kunci
+// Provider turunan untuk menyaring daftar catatan
 final daftarCatatanTersaringProvider = Provider<AsyncValue<List<Catatan>>>((ref) {
   final asyncCatatan = ref.watch(daftarCatatanNotifierProvider);
   final kataKunci = ref.watch(kataKunciPencarianProvider);

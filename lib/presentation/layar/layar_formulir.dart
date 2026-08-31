@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/tokens.dart'; // 📍 Impor Design Tokens
 
 class LayarFormulir extends StatefulWidget {
   const LayarFormulir({super.key});
@@ -39,7 +40,6 @@ class _LayarFormulirState extends State<LayarFormulir> {
 
   @override
   void dispose() {
-    // Membuang controller di dispose()
     _judulController.dispose();
     _isiController.dispose();
     super.dispose();
@@ -57,14 +57,12 @@ class _LayarFormulirState extends State<LayarFormulir> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tambah Catatan'),
-      ),
+      appBar: AppBar(title: const Text('Tambah Catatan')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        // 📍 Diganti dari 16.0
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           children: [
-            // Field Judul
             TextField(
               controller: _judulController,
               decoration: InputDecoration(
@@ -73,8 +71,8 @@ class _LayarFormulirState extends State<LayarFormulir> {
                 border: const OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
-            // Field Isi
+            // 📍 Diganti dari 16
+            const SizedBox(height: AppSpacing.md),
             TextField(
               controller: _isiController,
               maxLines: 5,
@@ -83,13 +81,12 @@ class _LayarFormulirState extends State<LayarFormulir> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 24),
-            // Tombol Simpan
+            // 📍 Diganti dari 24
+            const SizedBox(height: AppSpacing.lg),
             SizedBox(
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
-                // Tombol nonaktif (null) jika _bisaDisimpan bernilai false
                 onPressed: _bisaDisimpan ? _simpan : null,
                 child: const Text('Simpan'),
               ),

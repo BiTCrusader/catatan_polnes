@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/daftar_catatan_notifier.dart';
+import '../theme/tokens.dart';
 
-class KolomPencarian extends ConsumerStatefulWidget implements PreferredSizeWidget {
+class KolomPencarian extends ConsumerStatefulWidget
+    implements PreferredSizeWidget {
   const KolomPencarian({super.key});
 
   @override
@@ -27,8 +29,7 @@ class _KolomPencarianState extends ConsumerState<KolomPencarian> {
   void _tunda() {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 350), () {
-      // Memperbarui state kata kunci di Riverpod secara otomatis
-      ref.read(kataKunciPencarianProvider.notifier).state = _kontroler.text;
+      ref.read(kataKunciPencarianProvider.notifier).ubah(_kontroler.text);
     });
   }
 
@@ -43,7 +44,10 @@ class _KolomPencarianState extends ConsumerState<KolomPencarian> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       child: TextField(
         controller: _kontroler,
         decoration: InputDecoration(
@@ -51,7 +55,7 @@ class _KolomPencarianState extends ConsumerState<KolomPencarian> {
           prefixIcon: const Icon(Icons.search),
           contentPadding: const EdgeInsets.symmetric(vertical: 0),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
         ),
       ),

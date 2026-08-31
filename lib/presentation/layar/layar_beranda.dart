@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entity/catatan.dart';
 import '../state/daftar_catatan_notifier.dart';
+import '../theme/tokens.dart';
 import '../widget/kartu_catatan.dart';
+import '../widget/keadaan_kosong.dart';
 import '../widget/kolom_pencarian.dart';
+import '../widget/skeleton_daftar.dart';
 import 'layar_formulir.dart';
 
 class LayarBeranda extends ConsumerWidget {
@@ -11,9 +14,10 @@ class LayarBeranda extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 📍 Menambahkan const pada Scaffold (Line 17)
     return const Scaffold(
       appBar: _AppBarBeranda(),
-      body: _KontenDaftarCatatan(),
+      body: KontenDaftarCatatan(),
       floatingActionButton: _TombolTambahCatatan(),
     );
   }
@@ -35,29 +39,38 @@ class _AppBarBeranda extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-// --- EXTRACT WIDGET 2: Konten Daftar Catatan (dengan AsyncValue.when) ---
-class _KontenDaftarCatatan extends ConsumerWidget {
-  const _KontenDaftarCatatan();
+// --- EXTRACT WIDGET 2: Konten Daftar Catatan ---
+class KontenDaftarCatatan extends ConsumerWidget {
+  const KontenDaftarCatatan({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncCatatan = ref.watch(daftarCatatanTersaringProvider);
 
     return asyncCatatan.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const SkeletonDaftar(),
       error: (err, stack) => Center(child: Text('Terjadi galat: $err')),
       data: (daftarCatatan) {
         if (daftarCatatan.isEmpty) {
-          return const Center(child: Text('Tidak ada catatan ditemukan'));
+          return const KeadaanKosong(
+            ikon: Icons.note_add_outlined,
+            judul: 'Belum ada catatan',
+            penjelasan:
+            'Ketuk tombol tambah untuk membuat catatan pertama Anda.',
+          );
         }
+
         return ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           itemCount: daftarCatatan.length,
           itemBuilder: (context, index) {
             final catatan = daftarCatatan[index];
             return KartuCatatan(
+              key: ValueKey(catatan.id),
               catatan: catatan,
               onKetuk: () {},
-              onHapus: () => _prosesHapus(context, ref, catatan),
+              // 📍 Menggunakan async/await agar tidak unawaited
+              onHapus: () async => await _prosesHapus(context, ref, catatan),
             );
           },
         );
@@ -65,8 +78,12 @@ class _KontenDaftarCatatan extends ConsumerWidget {
     );
   }
 
-  void _prosesHapus(BuildContext context, WidgetRef ref, Catatan catatan) {
-    ref.read(daftarCatatanNotifierProvider.notifier).hapus(catatan.id);
+  Future<void> _prosesHapus(
+      BuildContext context, WidgetRef ref, Catatan catatan) async {
+    // 📍 Menambahkan await di sini (Line 118)
+    await ref.read(daftarCatatanNotifierProvider.notifier).hapus(catatan.id);
+
+    if (!context.mounted) return;
 
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -74,8 +91,8 @@ class _KontenDaftarCatatan extends ConsumerWidget {
         content: Text('Catatan "${catatan.judul}" dihapus'),
         action: SnackBarAction(
           label: 'Urungkan',
-          onPressed: () {
-            ref
+          onPressed: () async {
+            await ref
                 .read(daftarCatatanNotifierProvider.notifier)
                 .tambahObjek(catatan);
           },
@@ -93,19 +110,18 @@ class _TombolTambahCatatan extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FloatingActionButton(
+      tooltip: 'Tambah catatan',
       onPressed: () async {
         final hasil = await Navigator.push<Map<String, String>>(
           context,
-          MaterialPageRoute(
-            builder: (context) => const LayarFormulir(),
-          ),
+          MaterialPageRoute(builder: (context) => const LayarFormulir()),
         );
 
         if (hasil != null) {
           final judul = hasil['judul'] ?? '';
           final isi = hasil['isi'] ?? '';
 
-          ref
+          await ref
               .read(daftarCatatanNotifierProvider.notifier)
               .tambah(judul, isi);
         }
